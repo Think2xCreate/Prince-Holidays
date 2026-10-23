@@ -40,7 +40,6 @@ export const HeroSection: React.FC<HeroSectionProps> = () => {
   // Layer 2: Interior Cabin Panoramic View (revealed as camera crosses through the bus window)
   const interiorCabinLayerRef = useRef<HTMLDivElement | null>(null);
   const interiorLandscapeRef = useRef<HTMLDivElement | null>(null);
-  const cabinFrameOverlayRef = useRef<HTMLDivElement | null>(null);
   const glassSweepRef = useRef<HTMLDivElement | null>(null);
   // Layer 3: Oversized PRINCE HOLIDAYS SVG Mask Plate
   const maskOverlayRef = useRef<HTMLDivElement | null>(null);
@@ -149,7 +148,6 @@ export const HeroSection: React.FC<HeroSectionProps> = () => {
     const exteriorBus = exteriorBusLayerRef.current;
     const interiorCabin = interiorCabinLayerRef.current;
     const interiorLandscape = interiorLandscapeRef.current;
-    const cabinFrameOverlay = cabinFrameOverlayRef.current;
     const glassSweep = glassSweepRef.current;
     const maskOverlay = maskOverlayRef.current;
     const phase1Hud = phase1HudRef.current;
@@ -187,13 +185,6 @@ export const HeroSection: React.FC<HeroSectionProps> = () => {
           scale: 0.55,
           rotationX: 0,
           rotationY: 0,
-          transformOrigin: '50% 50%',
-        });
-      }
-      if (cabinFrameOverlay) {
-        gsap.set(cabinFrameOverlay, {
-          scale: 0.78,
-          opacity: 0,
           transformOrigin: '50% 50%',
         });
       }
@@ -342,33 +333,6 @@ export const HeroSection: React.FC<HeroSectionProps> = () => {
           0.34
         );
       }
-      // 3D Coach Cabin Frame â€” on touch devices just fade it in (no per-frame scale
-      // transforms on the large SVG frame layer).
-      if (cabinFrameOverlay) {
-        tl.to(
-          cabinFrameOverlay,
-          {
-            opacity: 1,
-            scale: 1,
-            duration: 0.18,
-            ease: 'power2.out',
-          },
-          0.35
-        );
-        // Slowly push cabin pillars outward as we settle into the front panoramic deck
-        if (!isTouchDevice) {
-          tl.to(
-            cabinFrameOverlay,
-            {
-              scale: 1.18,
-              opacity: 0.85,
-              duration: 0.42,
-              ease: 'none',
-            },
-            0.53
-          );
-        }
-      }
       // Continuous forward motion of the mountain landscape â€” skipped on touch
       // devices (large image layer scaling every frame).
       if (!isTouchDevice && interiorLandscape) {
@@ -461,82 +425,6 @@ export const HeroSection: React.FC<HeroSectionProps> = () => {
               className="absolute inset-0 bg-gradient-to-t from-[#231A10]/85 via-[#231A10]/30 to-[#231A10]/55"
               aria-hidden="true"
             />
-          </div>
-          {/* 3D Realistic Tourist Bus Cabin Architecture Frame (Window Pillars, Roof Cove Light, Seat Silhouettes) */}
-          <div
-            ref={cabinFrameOverlayRef}
-            className="pointer-events-none absolute inset-0 z-10 will-change-transform"
-            aria-hidden="true"
-          >
-            <svg
-              className="w-full h-full"
-              viewBox="0 0 1920 1080"
-              preserveAspectRatio="none"
-            >
-              <defs>
-                <linearGradient id="cabinRoofGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#16100A" stopOpacity="0.96" />
-                  <stop offset="65%" stopColor="#231A10" stopOpacity="0.78" />
-                  <stop offset="100%" stopColor="#231A10" stopOpacity="0" />
-                </linearGradient>
-                <linearGradient id="cabinDashGrad" x1="0" y1="1" x2="0" y2="0">
-                  <stop offset="0%" stopColor="#140E08" stopOpacity="0.96" />
-                  <stop offset="60%" stopColor="#231A10" stopOpacity="0.65" />
-                  <stop offset="100%" stopColor="#231A10" stopOpacity="0" />
-                </linearGradient>
-                <linearGradient id="wineCoveLight" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#FD6703" stopOpacity="0" />
-                  <stop offset="20%" stopColor="#FD6703" stopOpacity="0.85" />
-                  <stop offset="50%" stopColor="#FBF8F1" stopOpacity="0.95" />
-                  <stop offset="80%" stopColor="#FD6703" stopOpacity="0.85" />
-                  <stop offset="100%" stopColor="#FD6703" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-              {/* Top Coach Ceiling Canopy & Overhead Parcel Rack Silhouette */}
-              <path
-                d="M0,0 L1920,0 L1920,165 Q960,95 0,165 Z"
-                fill="url(#cabinRoofGrad)"
-              />
-              {/* Warm Golden Ambient LED Cove Strip along the Coach Ceiling */}
-              <path
-                d="M140,128 Q960,68 1780,128"
-                fill="none"
-                stroke="url(#wineCoveLight)"
-                strokeWidth="3"
-              />
-              {/* Loveseat-style side reading lamps between the front and rear window bays */}
-              <g fill="#FD6703" opacity="0.9">
-                <circle cx="620" cy="156" r="2.2" />
-                <circle cx="820" cy="156" r="2.2" />
-                <circle cx="1100" cy="156" r="2.2" />
-                <circle cx="1300" cy="156" r="2.2" />
-                <circle cx="1500" cy="156" r="2.2" />
-              </g>
-              {/* Left & Right Panoramic Coach Window Pillars (A-Pillars) */}
-              <path
-                d="M0,0 L150,0 L95,1080 L0,1080 Z"
-                fill="#16100A"
-                opacity="0.88"
-              />
-              <path
-                d="M1920,0 L1770,0 L1825,1080 L1920,1080 Z"
-                fill="#16100A"
-                opacity="0.88"
-              />
-              {/* Interior hand-rail / grab handle running along the roofline */}
-              <path
-                d="M170,138 L1750,138"
-                fill="none"
-                stroke="#FBF8F1"
-                strokeWidth="1.2"
-                strokeOpacity="0.22"
-              />
-              {/* Bottom Cabin Dashboard / Panoramic Sill Vignette */}
-              <path
-                d="M0,1080 L1920,1080 L1920,910 Q960,965 0,910 Z"
-                fill="url(#cabinDashGrad)"
-              />
-              {/* No windshield rim or center divider â€” removed per request to keep the view clean */}              </svg>
           </div>
         </div>
         {/* Optical Window Glass Reflection Sweep as Camera Crosses Into the Bus */}
