@@ -3,13 +3,19 @@
 import React, { useEffect, useState } from 'react';
 import {
   Phone,
+  MapPin,
+  Clock,
   MessageCircle,
   ArrowUpRight,
   CheckCircle2,
   AlertCircle,
   RotateCcw,
 } from 'lucide-react';
-import { BUSINESS_CONFIG, buildWhatsAppUrl } from '../../data/business';
+import {
+  BUSINESS_CONFIG,
+  buildWhatsAppUrl,
+  DEFAULT_WA_MESSAGE,
+} from '../../data/business';
 import { DESTINATIONS } from '../../data/destinations';
 import { TRAVEL_CATEGORIES } from '../../data/travelCategories';
 import { SectionLabel } from '../ui/SectionLabel';
@@ -19,12 +25,16 @@ interface EnquirySectionProps {
   preselectedCategory?: string;
 }
 
+const MANUAL_DESTINATION_VALUE = 'other';
+
 interface EnquiryFormState {
   fullName: string;
   phone: string;
   email: string;
   tourCategory: string;
   destination: string;
+  destinationManual: string;
+  startingFrom: string;
   travelDate: string;
   travellers: string;
   requirements: string;
@@ -59,8 +69,10 @@ export const EnquirySection: React.FC<EnquirySectionProps> = ({
     fullName: '',
     phone: '',
     email: '',
-    tourCategory: preselectedCategory || TRAVEL_CATEGORIES[0].title,
-    destination: preselectedDestination || DESTINATIONS[0].name,
+    tourCategory: preselectedCategory || '',
+    destination: preselectedDestination || '',
+    destinationManual: '',
+    startingFrom: '',
     travelDate: '',
     travellers: '',
     requirements: '',
@@ -72,7 +84,14 @@ export const EnquirySection: React.FC<EnquirySectionProps> = ({
 
   useEffect(() => {
     if (preselectedDestination) {
-      setFormData((prev) => ({ ...prev, destination: preselectedDestination }));
+      const isKnownDestination = DESTINATIONS.some(
+        (d) => d.name === preselectedDestination,
+      );
+      setFormData((prev) =>
+        isKnownDestination
+          ? { ...prev, destination: preselectedDestination, destinationManual: '' }
+          : { ...prev, destination: MANUAL_DESTINATION_VALUE, destinationManual: preselectedDestination },
+      );
       setIsReadyForWhatsApp(false);
     }
   }, [preselectedDestination]);
@@ -107,8 +126,18 @@ export const EnquirySection: React.FC<EnquirySectionProps> = ({
       nextErrors.tourCategory = 'Please select a tour category.';
     }
 
-    if (!formData.destination.trim()) {
-      nextErrors.destination = 'Please enter or select your destination.';
+    if (
+      formData.destination === MANUAL_DESTINATION_VALUE &&
+      !formData.destinationManual.trim()
+    ) {
+      nextErrors.destination =
+        'Please type your destination or select one from the list.';
+    } else if (formData.destination !== MANUAL_DESTINATION_VALUE && !formData.destination.trim()) {
+      nextErrors.destination = 'Please select your destination.';
+    }
+
+    if (!formData.startingFrom.trim()) {
+      nextErrors.startingFrom = 'Please enter your starting city or place.';
     }
 
     if (!formData.travellers.trim()) {
@@ -127,8 +156,15 @@ export const EnquirySection: React.FC<EnquirySectionProps> = ({
       `• Full Name: ${formData.fullName.trim()}`,
       `• Phone: ${formData.phone.trim()}`,
       formData.email.trim() ? `• Email: ${formData.email.trim()}` : null,
-      `• Tour Category: ${formData.tourCategory.trim()}`,
-      `• Destination: ${formData.destination.trim()}`,
+      `• Tour Category: ${
+        formData.tourCategory.trim() || 'Not selected'
+      }`,
+      `• Destination: ${
+        formData.destination === MANUAL_DESTINATION_VALUE
+          ? formData.destinationManual.trim()
+          : formData.destination.trim() || 'Not selected'
+      }`,
+      `• Starting From: ${formData.startingFrom.trim()}`,
       `• Travel Date: ${formData.travelDate.trim() || 'Flexible / To be discussed'}`,
       `• Number of Travellers: ${formData.travellers.trim()}`,
       `• Additional Requirements: ${formData.requirements.trim() || 'None specified'}`,
@@ -164,9 +200,9 @@ export const EnquirySection: React.FC<EnquirySectionProps> = ({
           meta="TALK TO US DIRECTLY"
         />
 
-        <div className="mt-8 lg:mt-12 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+        <div className="mt-8 lg:mt-12 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 lg:items-stretch">
           {/* Left Column: Editorial Introduction & Direct Contact */}
-          <div className="lg:col-span-5 space-y-8">
+          <div className="lg:col-span-5 flex flex-col gap-8">
             <div>
               <span className="inline-block font-mono text-xs uppercase tracking-[0.2em] text-[#FD6703] mb-4">
                 BEGIN THE CONVERSATION
@@ -182,65 +218,91 @@ export const EnquirySection: React.FC<EnquirySectionProps> = ({
               </p>
             </div>
 
-            {/* Direct Phone & WhatsApp Cards */}
-            <div className="space-y-4 pt-4 border-t border-[#D9D1C3]">
-              <div className="p-6 rounded-2xl bg-[#FBF8F1] border border-[#D9D1C3] flex items-center justify-between gap-4">
-                <div>
-                  <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#6B6A63] block">
-                    DIRECT PHONE
-                  </span>
-                  <a
-                    href={`tel:${BUSINESS_CONFIG.phone}`}
-                    className="mt-1 inline-block font-display text-2xl font-semibold text-[#231A10] hover:text-[#FD6703] transition-colors"
-                  >
-                    {BUSINESS_CONFIG.phoneFormatted}
-                  </a>
-                  <p className="text-xs text-[#6B6A63] mt-0.5">
-                    Call us directly, 9am – 9pm
-                  </p>
-                </div>
-                <a
-                  href={`tel:${BUSINESS_CONFIG.phone}`}
-                  aria-label={`Call ${BUSINESS_CONFIG.phoneFormatted}`}
-                  className="w-12 h-12 rounded-full bg-[#231A10] text-[#fcfcfc] hover:bg-[#FD6703] flex items-center justify-center transition-colors shrink-0"
-                >
-                  <Phone className="w-5 h-5" />
-                </a>
-              </div>
+            {/* Office Contact Card */}
+            <div className="rounded-[24px] bg-[#fcfcfc] border border-[#E3DED2] p-7 sm:p-8">
+              <h3 className="font-display text-xl sm:text-2xl font-semibold tracking-tight text-[#231A10]">
+                {BUSINESS_CONFIG.wordmark} OFFICE
+              </h3>
 
-              <div className="p-6 rounded-2xl bg-[#FBF8F1] border border-[#D9D1C3] flex items-center justify-between gap-4">
-                <div>
-                  <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#6B6A63] block">
-                    WHATSAPP DESK
+              <div className="mt-7 space-y-7">
+                {/* Phone / WhatsApp */}
+                <div className="flex items-start gap-4">
+                  <span className="w-11 h-11 rounded-full bg-[#FD6703]/10 text-[#FD6703] flex items-center justify-center shrink-0">
+                    <Phone className="w-5 h-5" />
                   </span>
-                  <a
-                    href={BUSINESS_CONFIG.whatsappBaseUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-1 inline-block font-display text-2xl font-semibold text-[#231A10] hover:text-[#FD6703] transition-colors"
-                  >
-                    {BUSINESS_CONFIG.phone}
-                  </a>
-                  <p className="text-xs text-[#6B6A63] mt-0.5">
-                    Share your route &amp; dates directly on WhatsApp
-                  </p>
+                  <div>
+                    <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#6B6A63]">
+                      Phone / WhatsApp
+                    </span>
+                    <a
+                      href={`tel:${BUSINESS_CONFIG.phone}`}
+                      className="block font-display text-lg font-semibold text-[#231A10] hover:text-[#FD6703] transition-colors"
+                    >
+                      {BUSINESS_CONFIG.phoneFormatted}
+                    </a>
+                  </div>
                 </div>
-                <a
-                  href={BUSINESS_CONFIG.whatsappBaseUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Chat on WhatsApp"
-                  className="w-12 h-12 rounded-full bg-[#FD6703] text-[#FBF8F1] hover:bg-[#231A10] flex items-center justify-center transition-colors shrink-0"
-                >
-                  <MessageCircle className="w-5 h-5" />
-                </a>
+
+                {/* Office Location */}
+                <div className="flex items-start gap-4">
+                  <span className="w-11 h-11 rounded-full bg-[#FD6703]/10 text-[#FD6703] flex items-center justify-center shrink-0">
+                    <MapPin className="w-5 h-5" />
+                  </span>
+                  <div>
+                    <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#6B6A63]">
+                      Office Location
+                    </span>
+                    <a
+                      href={BUSINESS_CONFIG.mapsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block font-display text-lg font-semibold text-[#231A10] hover:text-[#FD6703] transition-colors leading-snug"
+                    >
+                      {BUSINESS_CONFIG.address}
+                    </a>
+                  </div>
+                </div>
+
+                {/* Working Hours */}
+                <div className="flex items-start gap-4">
+                  <span className="w-11 h-11 rounded-full bg-[#FD6703]/10 text-[#FD6703] flex items-center justify-center shrink-0">
+                    <Clock className="w-5 h-5" />
+                  </span>
+                  <div>
+                    <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#6B6A63]">
+                      Working Hours
+                    </span>
+                    <p className="font-display text-lg font-semibold text-[#231A10]">
+                      {BUSINESS_CONFIG.workingHours}
+                    </p>
+                  </div>
+                </div>
               </div>
+            </div>
+
+            {/* Fast Support Callout */}
+            <div className="rounded-[24px] bg-[#FD6703] p-7 sm:p-8 lg:mt-auto lg:self-stretch">
+              <h3 className="font-display text-xl sm:text-2xl font-semibold tracking-tight text-[#231A10]">
+                Need a Quick Quote?
+              </h3>
+              <p className="mt-3 text-sm sm:text-base text-[#231A10]/80 leading-relaxed">
+                Connect directly with our travel team on WhatsApp for immediate trip planning — bus, stay and food all in one chat.
+              </p>
+              <a
+                href={buildWhatsAppUrl(DEFAULT_WA_MESSAGE)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-6 inline-flex items-center gap-2.5 px-6 py-3.5 rounded-full bg-[#231A10] text-[#FBF8F1] hover:bg-white hover:text-[#231A10] font-mono text-xs uppercase tracking-[0.18em] transition-colors"
+              >
+                <MessageCircle className="w-4 h-4" />
+                <span>WhatsApp Instant Support</span>
+              </a>
             </div>
           </div>
 
           {/* Right Column: Accessible Enquiry Form & Honest WhatsApp Confirmation */}
           <div className="lg:col-span-7">
-            <div className="p-7 sm:p-10 lg:p-12 rounded-[24px] bg-[#FBF8F1] border border-[#E3DED2]">
+            <div className="p-7 sm:p-10 lg:p-12 rounded-[24px] bg-[#FBF8F1] border border-[#E3DED2] lg:h-full">
               {isReadyForWhatsApp ? (
                 <div role="status" aria-live="polite" className="space-y-6">
                   <div className="flex items-start gap-4">
@@ -418,8 +480,15 @@ export const EnquirySection: React.FC<EnquirySectionProps> = ({
                         onChange={(e) =>
                           setFormData({ ...formData, tourCategory: e.target.value })
                         }
-                        className="w-full px-4 py-3 rounded-xl bg-[#fcfcfc] border border-[#D9D1C3] text-sm text-[#231A10] focus:bg-white focus:outline-none focus:border-[#FD6703] transition-colors"
+                        aria-invalid={Boolean(errors.tourCategory)}
+                        aria-describedby={errors.tourCategory ? 'err-category' : undefined}
+                        className={`w-full px-4 py-3 rounded-xl bg-[#fcfcfc] border text-sm text-[#231A10] focus:bg-white focus:outline-none focus:border-[#FD6703] transition-colors ${
+                          errors.tourCategory ? 'border-red-600' : 'border-[#D9D1C3]'
+                        }`}
                       >
+                        <option value="" disabled hidden>
+                          Select Tour
+                        </option>
                         {TRAVEL_CATEGORIES.map((cat) => (
                           <option key={cat.id} value={cat.title}>
                             {cat.title}
@@ -432,10 +501,19 @@ export const EnquirySection: React.FC<EnquirySectionProps> = ({
                           Custom Group Itinerary
                         </option>
                       </select>
+                      {errors.tourCategory && (
+                        <p
+                          id="err-category"
+                          className="mt-1.5 text-xs text-red-700 flex items-center gap-1"
+                        >
+                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                          <span>{errors.tourCategory}</span>
+                        </p>
+                      )}
                     </div>
                   </div>
 
-                  {/* Row 3: Destination & Travel Date (optional) */}
+                  {/* Row 3: Destination (select + manual option) & Starting From */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
                       <label
@@ -444,30 +522,48 @@ export const EnquirySection: React.FC<EnquirySectionProps> = ({
                       >
                         Destination *
                       </label>
-                      <input
+                      <select
                         id="enquiry-destination"
                         name="destination"
-                        type="text"
-                        list="prince-destination-suggestions"
                         required
                         value={formData.destination}
                         onChange={(e) =>
                           setFormData({ ...formData, destination: e.target.value })
                         }
-                        placeholder="e.g. Ooty, Kodaikanal, Munnar, Kerala"
                         aria-invalid={Boolean(errors.destination)}
                         aria-describedby={
                           errors.destination ? 'err-destination' : undefined
                         }
-                        className={`w-full px-4 py-3 rounded-xl bg-[#fcfcfc] border text-sm text-[#231A10] placeholder:text-[#6B6A63]/60 focus:bg-white focus:outline-none focus:border-[#FD6703] transition-colors ${
+                        className={`w-full px-4 py-3 rounded-xl bg-[#fcfcfc] border text-sm text-[#231A10] focus:bg-white focus:outline-none focus:border-[#FD6703] transition-colors ${
                           errors.destination ? 'border-red-600' : 'border-[#D9D1C3]'
                         }`}
-                      />
-                      <datalist id="prince-destination-suggestions">
+                      >
+                        <option value="" disabled hidden>
+                          Select Destination
+                        </option>
                         {DESTINATIONS.map((d) => (
-                          <option key={d.id} value={d.name} />
+                          <option key={d.id} value={d.name}>
+                            {d.name}
+                          </option>
                         ))}
-                      </datalist>
+                        <option value={MANUAL_DESTINATION_VALUE}>
+                          Other (Type Manually)
+                        </option>
+                      </select>
+
+                      {formData.destination === MANUAL_DESTINATION_VALUE && (
+                        <input
+                          id="enquiry-destination-manual"
+                          name="destinationManual"
+                          type="text"
+                          value={formData.destinationManual}
+                          onChange={(e) =>
+                            setFormData({ ...formData, destinationManual: e.target.value })
+                          }
+                          placeholder="Type your destination, e.g. Rameswaram, Coimbatore"
+                          className="mt-3 w-full px-4 py-3 rounded-xl bg-[#fcfcfc] border border-[#D9D1C3] text-sm text-[#231A10] placeholder:text-[#6B6A63]/60 focus:bg-white focus:outline-none focus:border-[#FD6703] transition-colors"
+                        />
+                      )}
                       {errors.destination && (
                         <p
                           id="err-destination"
@@ -479,6 +575,45 @@ export const EnquirySection: React.FC<EnquirySectionProps> = ({
                       )}
                     </div>
 
+                    <div>
+                      <label
+                        htmlFor="enquiry-starting-from"
+                        className="block font-mono text-[11px] uppercase tracking-[0.16em] text-[#231A10] mb-2"
+                      >
+                        Starting From *
+                      </label>
+                      <input
+                        id="enquiry-starting-from"
+                        name="startingFrom"
+                        type="text"
+                        required
+                        value={formData.startingFrom}
+                        onChange={(e) =>
+                          setFormData({ ...formData, startingFrom: e.target.value })
+                        }
+                        placeholder="e.g. Salem, Coimbatore, Chennai"
+                        aria-invalid={Boolean(errors.startingFrom)}
+                        aria-describedby={
+                          errors.startingFrom ? 'err-starting-from' : undefined
+                        }
+                        className={`w-full px-4 py-3 rounded-xl bg-[#fcfcfc] border text-sm text-[#231A10] placeholder:text-[#6B6A63]/60 focus:bg-white focus:outline-none focus:border-[#FD6703] transition-colors ${
+                          errors.startingFrom ? 'border-red-600' : 'border-[#D9D1C3]'
+                        }`}
+                      />
+                      {errors.startingFrom && (
+                        <p
+                          id="err-starting-from"
+                          className="mt-1.5 text-xs text-red-700 flex items-center gap-1"
+                        >
+                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                          <span>{errors.startingFrom}</span>
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Row 4: Travel Date (optional) & Number of Travellers */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
                       <label
                         htmlFor="enquiry-date"
@@ -497,41 +632,40 @@ export const EnquirySection: React.FC<EnquirySectionProps> = ({
                         className="w-full px-4 py-3 rounded-xl bg-[#fcfcfc] border border-[#D9D1C3] text-sm text-[#231A10] focus:bg-white focus:outline-none focus:border-[#FD6703] transition-colors"
                       />
                     </div>
-                  </div>
 
-                  {/* Row 4: Number of Travellers */}
-                  <div>
-                    <label
-                      htmlFor="enquiry-travellers"
-                      className="block font-mono text-[11px] uppercase tracking-[0.16em] text-[#231A10] mb-2"
-                    >
-                      Number of Travellers *
-                    </label>
-                    <input
-                      id="enquiry-travellers"
-                      name="travellers"
-                      type="text"
-                      required
-                      value={formData.travellers}
-                      onChange={(e) =>
-                        setFormData({ ...formData, travellers: e.target.value })
-                      }
-                      placeholder="e.g. 12 family, 45 students, 25 office staff"
-                      aria-invalid={Boolean(errors.travellers)}
-                      aria-describedby={errors.travellers ? 'err-travellers' : undefined}
-                      className={`w-full px-4 py-3 rounded-xl bg-[#fcfcfc] border text-sm text-[#231A10] placeholder:text-[#6B6A63]/60 focus:bg-white focus:outline-none focus:border-[#FD6703] transition-colors ${
-                        errors.travellers ? 'border-red-600' : 'border-[#D9D1C3]'
-                      }`}
-                    />
-                    {errors.travellers && (
-                      <p
-                        id="err-travellers"
-                        className="mt-1.5 text-xs text-red-700 flex items-center gap-1"
+                    <div>
+                      <label
+                        htmlFor="enquiry-travellers"
+                        className="block font-mono text-[11px] uppercase tracking-[0.16em] text-[#231A10] mb-2"
                       >
-                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                        <span>{errors.travellers}</span>
-                      </p>
-                    )}
+                        Number of Travellers *
+                      </label>
+                      <input
+                        id="enquiry-travellers"
+                        name="travellers"
+                        type="text"
+                        required
+                        value={formData.travellers}
+                        onChange={(e) =>
+                          setFormData({ ...formData, travellers: e.target.value })
+                        }
+                        placeholder="e.g. 12 family, 45 students, 25 office staff"
+                        aria-invalid={Boolean(errors.travellers)}
+                        aria-describedby={errors.travellers ? 'err-travellers' : undefined}
+                        className={`w-full px-4 py-3 rounded-xl bg-[#fcfcfc] border text-sm text-[#231A10] placeholder:text-[#6B6A63]/60 focus:bg-white focus:outline-none focus:border-[#FD6703] transition-colors ${
+                          errors.travellers ? 'border-red-600' : 'border-[#D9D1C3]'
+                        }`}
+                      />
+                      {errors.travellers && (
+                        <p
+                          id="err-travellers"
+                          className="mt-1.5 text-xs text-red-700 flex items-center gap-1"
+                        >
+                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                          <span>{errors.travellers}</span>
+                        </p>
+                      )}
+                    </div>
                   </div>
 
                   {/* Row 5: Additional Requirements */}

@@ -49,8 +49,14 @@ export const BUSINESS_CONFIG = {
   countryCode: '91',
   whatsappNumber: '919715057769',
   whatsappBaseUrl: 'https://wa.me/919715057769',
-  instagramHandle: '@prince_holidays',
-  instagramUrl: 'https://instagram.com/prince_holidays',
+  phoneLabel: '+91 97150 57769',
+  address:
+    'Ground floor, 38/B, Cheranmahadevi Rd, Tirunelveli Junction, Tirunelveli, Tamil Nadu 627006',
+  workingHours: 'Mon – Sun: 9:00 AM – 9:00 PM (IST)',
+  mapsUrl:
+    'https://www.google.com/maps/search/?api=1&query=Ground%20floor%2C%2038%2FB%2C%20Cheranmahadevi%20Rd%2C%20Tirunelveli%20Junction%2C%20Tirunelveli%2C%20Tamil%20Nadu%20627006',
+  instagramHandle: '@_prince_holidays',
+  instagramUrl: 'https://www.instagram.com/_prince_holidays/',
   youtubeUrl: 'https://youtube.com/@princetravelhub?si=o1tp_fVTRSx2Qwoe',
   logo: logoImg,
   services: [
@@ -135,3 +141,5 @@ export const LOCAL_IMAGES = {
 export function buildWhatsAppUrl(message: string): string {
   return `${BUSINESS_CONFIG.whatsappBaseUrl}?text=${encodeURIComponent(message)}`;
 }
+
+export const DEFAULT_WA_MESSAGE = `Hello ${BUSINESS_CONFIG.name}, I would like to plan a trip.`;
