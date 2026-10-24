@@ -155,10 +155,10 @@ export const CinematicVideoSection: React.FC = () => {
               },
               ease: 'power2.inOut',
               duration: 0.38,
-            }
-          ),
-          0.32
-        };
+            },
+            0.32
+          );
+        }
 
         if (windowInnerRim) {
           tl.fromTo(
@@ -184,10 +184,10 @@ export const CinematicVideoSection: React.FC = () => {
               opacity: 0,
               ease: 'power2.inOut',
               duration: 0.38,
-            }
-          ),
-          0.32
-        };
+            },
+            0.32
+          );
+        }
 
        if (windowMaskOverlay) {
          tl.to(windowMaskOverlay, { autoAlpha: 0, duration: 0.08 }, 0.66);

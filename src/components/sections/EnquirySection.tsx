@@ -16,7 +16,6 @@ import {
   buildWhatsAppUrl,
   DEFAULT_WA_MESSAGE,
 } from '../../data/business';
-import { DESTINATIONS } from '../../data/destinations';
 import { TRAVEL_CATEGORIES } from '../../data/travelCategories';
 import { SectionLabel } from '../ui/SectionLabel';
 
@@ -25,15 +24,12 @@ interface EnquirySectionProps {
   preselectedCategory?: string;
 }
 
-const MANUAL_DESTINATION_VALUE = 'other';
-
 interface EnquiryFormState {
   fullName: string;
   phone: string;
   email: string;
   tourCategory: string;
   destination: string;
-  destinationManual: string;
   startingFrom: string;
   travelDate: string;
   travellers: string;
@@ -71,7 +67,6 @@ export const EnquirySection: React.FC<EnquirySectionProps> = ({
     email: '',
     tourCategory: preselectedCategory || '',
     destination: preselectedDestination || '',
-    destinationManual: '',
     startingFrom: '',
     travelDate: '',
     travellers: '',
@@ -84,14 +79,7 @@ export const EnquirySection: React.FC<EnquirySectionProps> = ({
 
   useEffect(() => {
     if (preselectedDestination) {
-      const isKnownDestination = DESTINATIONS.some(
-        (d) => d.name === preselectedDestination,
-      );
-      setFormData((prev) =>
-        isKnownDestination
-          ? { ...prev, destination: preselectedDestination, destinationManual: '' }
-          : { ...prev, destination: MANUAL_DESTINATION_VALUE, destinationManual: preselectedDestination },
-      );
+      setFormData((prev) => ({ ...prev, destination: preselectedDestination }));
       setIsReadyForWhatsApp(false);
     }
   }, [preselectedDestination]);
@@ -126,14 +114,8 @@ export const EnquirySection: React.FC<EnquirySectionProps> = ({
       nextErrors.tourCategory = 'Please select a tour category.';
     }
 
-    if (
-      formData.destination === MANUAL_DESTINATION_VALUE &&
-      !formData.destinationManual.trim()
-    ) {
-      nextErrors.destination =
-        'Please type your destination or select one from the list.';
-    } else if (formData.destination !== MANUAL_DESTINATION_VALUE && !formData.destination.trim()) {
-      nextErrors.destination = 'Please select your destination.';
+    if (!formData.destination.trim()) {
+      nextErrors.destination = 'Please enter your destination.';
     }
 
     if (!formData.startingFrom.trim()) {
@@ -159,11 +141,7 @@ export const EnquirySection: React.FC<EnquirySectionProps> = ({
       `• Tour Category: ${
         formData.tourCategory.trim() || 'Not selected'
       }`,
-      `• Destination: ${
-        formData.destination === MANUAL_DESTINATION_VALUE
-          ? formData.destinationManual.trim()
-          : formData.destination.trim() || 'Not selected'
-      }`,
+      `• Destination: ${formData.destination.trim() || 'Not selected'}`,
       `• Starting From: ${formData.startingFrom.trim()}`,
       `• Travel Date: ${formData.travelDate.trim() || 'Flexible / To be discussed'}`,
       `• Number of Travellers: ${formData.travellers.trim()}`,
@@ -517,66 +495,6 @@ export const EnquirySection: React.FC<EnquirySectionProps> = ({
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
                       <label
-                        htmlFor="enquiry-destination"
-                        className="block font-mono text-[11px] uppercase tracking-[0.16em] text-[#231A10] mb-2"
-                      >
-                        Destination *
-                      </label>
-                      <select
-                        id="enquiry-destination"
-                        name="destination"
-                        required
-                        value={formData.destination}
-                        onChange={(e) =>
-                          setFormData({ ...formData, destination: e.target.value })
-                        }
-                        aria-invalid={Boolean(errors.destination)}
-                        aria-describedby={
-                          errors.destination ? 'err-destination' : undefined
-                        }
-                        className={`w-full px-4 py-3 rounded-xl bg-[#fcfcfc] border text-sm text-[#231A10] focus:bg-white focus:outline-none focus:border-[#FD6703] transition-colors ${
-                          errors.destination ? 'border-red-600' : 'border-[#D9D1C3]'
-                        }`}
-                      >
-                        <option value="" disabled hidden>
-                          Select Destination
-                        </option>
-                        {DESTINATIONS.map((d) => (
-                          <option key={d.id} value={d.name}>
-                            {d.name}
-                          </option>
-                        ))}
-                        <option value={MANUAL_DESTINATION_VALUE}>
-                          Other (Type Manually)
-                        </option>
-                      </select>
-
-                      {formData.destination === MANUAL_DESTINATION_VALUE && (
-                        <input
-                          id="enquiry-destination-manual"
-                          name="destinationManual"
-                          type="text"
-                          value={formData.destinationManual}
-                          onChange={(e) =>
-                            setFormData({ ...formData, destinationManual: e.target.value })
-                          }
-                          placeholder="Type your destination, e.g. Rameswaram, Coimbatore"
-                          className="mt-3 w-full px-4 py-3 rounded-xl bg-[#fcfcfc] border border-[#D9D1C3] text-sm text-[#231A10] placeholder:text-[#6B6A63]/60 focus:bg-white focus:outline-none focus:border-[#FD6703] transition-colors"
-                        />
-                      )}
-                      {errors.destination && (
-                        <p
-                          id="err-destination"
-                          className="mt-1.5 text-xs text-red-700 flex items-center gap-1"
-                        >
-                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                          <span>{errors.destination}</span>
-                        </p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label
                         htmlFor="enquiry-starting-from"
                         className="block font-mono text-[11px] uppercase tracking-[0.16em] text-[#231A10] mb-2"
                       >
@@ -607,6 +525,42 @@ export const EnquirySection: React.FC<EnquirySectionProps> = ({
                         >
                           <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                           <span>{errors.startingFrom}</span>
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="enquiry-destination"
+                        className="block font-mono text-[11px] uppercase tracking-[0.16em] text-[#231A10] mb-2"
+                      >
+                        Destination *
+                      </label>
+                      <input
+                        id="enquiry-destination"
+                        name="destination"
+                        type="text"
+                        required
+                        value={formData.destination}
+                        onChange={(e) =>
+                          setFormData({ ...formData, destination: e.target.value })
+                        }
+                        placeholder="e.g. Ooty, Munnar, Rameswaram"
+                        aria-invalid={Boolean(errors.destination)}
+                        aria-describedby={
+                          errors.destination ? 'err-destination' : undefined
+                        }
+                        className={`w-full px-4 py-3 rounded-xl bg-[#fcfcfc] border text-sm text-[#231A10] placeholder:text-[#6B6A63]/60 focus:bg-white focus:outline-none focus:border-[#FD6703] transition-colors ${
+                          errors.destination ? 'border-red-600' : 'border-[#D9D1C3]'
+                        }`}
+                      />
+                      {errors.destination && (
+                        <p
+                          id="err-destination"
+                          className="mt-1.5 text-xs text-red-700 flex items-center gap-1"
+                        >
+                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                          <span>{errors.destination}</span>
                         </p>
                       )}
                     </div>
