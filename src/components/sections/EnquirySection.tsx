@@ -16,6 +16,7 @@ import {
   buildWhatsAppUrl,
   DEFAULT_WA_MESSAGE,
 } from '../../data/business';
+import { DESTINATIONS } from '../../data/destinations';
 import { TRAVEL_CATEGORIES } from '../../data/travelCategories';
 import { SectionLabel } from '../ui/SectionLabel';
 
@@ -536,24 +537,31 @@ export const EnquirySection: React.FC<EnquirySectionProps> = ({
                       >
                         Destination *
                       </label>
-                      <input
+                      <select
                         id="enquiry-destination"
                         name="destination"
-                        type="text"
                         required
                         value={formData.destination}
                         onChange={(e) =>
                           setFormData({ ...formData, destination: e.target.value })
                         }
-                        placeholder="e.g. Ooty, Munnar, Rameswaram"
                         aria-invalid={Boolean(errors.destination)}
                         aria-describedby={
                           errors.destination ? 'err-destination' : undefined
                         }
-                        className={`w-full px-4 py-3 rounded-xl bg-[#fcfcfc] border text-sm text-[#231A10] placeholder:text-[#6B6A63]/60 focus:bg-white focus:outline-none focus:border-[#FD6703] transition-colors ${
+                        className={`w-full px-4 py-3 rounded-xl bg-[#fcfcfc] border text-sm text-[#231A10] focus:bg-white focus:outline-none focus:border-[#FD6703] transition-colors ${
                           errors.destination ? 'border-red-600' : 'border-[#D9D1C3]'
                         }`}
-                      />
+                      >
+                        <option value="" disabled>
+                          Select a destination
+                        </option>
+                        {DESTINATIONS.map((dest) => (
+                          <option key={dest.id} value={dest.name}>
+                            {dest.name}
+                          </option>
+                        ))}
+                      </select>
                       {errors.destination && (
                         <p
                           id="err-destination"

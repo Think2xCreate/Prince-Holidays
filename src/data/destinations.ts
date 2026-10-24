@@ -102,6 +102,42 @@ export const DESTINATIONS: DestinationItem[] = [
     coordinatesLabel: 'COASTAL CORRIDOR',
   },
   {
+    id: 'wayanad',
+    code: 'WYD',
+    name: 'Wayanad, Kerala',
+    region: 'Western Ghats',
+    landscapeLabel: 'Misty Hills & Spice Trails',
+    description:
+      'Lush green hills, spice plantations and waterfalls. A peaceful escape in North Kerala.',
+    highlights: ['Edakkal Caves', 'Soochipara Falls', 'Spice Plantations', 'Banasura Sagar Dam'],
+    image: LOCAL_IMAGES.wayanad,
+    coordinatesLabel: 'HILLAND RETREAT',
+  },
+  {
+    id: 'alleppey',
+    code: 'ALL',
+    name: 'Alleppey Backwaters',
+    region: 'Kerala Coast',
+    landscapeLabel: 'Backwaters & Houseboats',
+    description:
+      'Serene backwater cruises, houseboat stays and village life. The Venice of the East.',
+    highlights: ['Houseboat Cruise', 'Backwater Village', 'Snake Boat Race', 'Beach'],
+    image: LOCAL_IMAGES.alleppey,
+    coordinatesLabel: 'BACKWATER VENICE',
+  },
+  {
+    id: 'all-south-india',
+    code: 'ASI',
+    name: 'All South India',
+    region: 'South India',
+    landscapeLabel: 'Multi-State Circuit',
+    description:
+      'A grand tour covering hill stations, backwaters, temples and beaches across South India.',
+    highlights: ['Hill Stations', 'Backwaters', 'Temples', 'Beaches'],
+    image: LOCAL_IMAGES.allSouthIndia,
+    coordinatesLabel: 'SOUTH INDIA CIRCUIT',
+  },
+  {
     id: 'custom-destinations',
     code: 'CST',
     name: 'Other Customized Destinations',

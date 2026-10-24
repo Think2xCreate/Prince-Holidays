@@ -9,6 +9,9 @@ const coorgImg = '/images/coorg_coffee_hills.jpg';
 const mysuruImg = '/images/mysore_palace_heritage.jpg';
 const chennaiImg = '/images/chennai_coastal_beach.jpg';
 const customBespokeImg = '/images/custom_bespoke_travel.jpg';
+const wayanadImg = '/images/featured_south_india.jpg';
+const alleppeyImg = '/images/kerala_backwaters_1791958695061.jpg';
+const allSouthIndiaImg = '/images/featured_south_india.jpg';
 const familyHolidayImg = '/images/family_holiday_tour.jpg';
 const familyHolidayBeachImg = '/images/family_holiday_beach.jpg';
 const corporateToursImg = '/images/corporate_tours.jpg';
@@ -109,6 +112,9 @@ export const LOCAL_IMAGES = {
   mysuru: mysuruImg,
   chennai: chennaiImg,
   customBespoke: customBespokeImg,
+  wayanad: wayanadImg,
+  alleppey: alleppeyImg,
+  allSouthIndia: allSouthIndiaImg,
   familyHoliday: familyHolidayImg,
   familyHolidayBeach: familyHolidayBeachImg,
   corporateTours: corporateToursImg,
